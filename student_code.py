@@ -1,6 +1,6 @@
 import math
 
-global intersection_dict, roads_list, pos_path, heuristic_values
+global intersection_dict, roads_list, pos_path, heuristic_values, next_cost
 heuristic_values = {}
 intersection_dict = {}
 roads_list = []
@@ -33,22 +33,29 @@ def shortest_path(M, start, goal):
         return [start]
     
     #print(M, start,goal)
-    global intersection_dict, roads_list, pos_path, heuristic_values
+    global intersection_dict, roads_list, pos_path, heuristic_values, next_cost
     heuristic_values = {}
+    intersection_dict = M.intersections
+    roads_list = M.roads
     for node in intersection_dict:
         #print(node)
         heuristic_values[node] = math.sqrt((intersection_dict[node][0] - intersection_dict[goal][0])**2 + abs(intersection_dict[node][1] - intersection_dict[goal][1])**2)
         
+    next_cost = []
+    for i in range(len(roads_list)):
+        temp = []
+        for path in roads_list[i]:
+            temp.append(math.sqrt((intersection_dict[i][0] - intersection_dict[path][0])**2 + abs(intersection_dict[i][1] - intersection_dict[path][1])**2))
+        next_cost.append(temp)
+            
     #print(heuristic_values)
     print("shortest path called")
-    intersection_dict = M.intersections
-    roads_list = M.roads
     pos_path = Priority_queue()
     pos_path.insert([[start],0,heuristic_values[start]])
     return helper_path(start, goal)
 
 def helper_path(current, goal):
-    global intersection_dict, roads_list, pos_path, heuristic_values
+    global intersection_dict, roads_list, pos_path, heuristic_values, next_cost
     #print(pos_path)
     #print()
     # handling if there is no any path
@@ -63,11 +70,11 @@ def helper_path(current, goal):
         return item[0]
 
     #print(roads_list[current], 'road')
-    for front in roads_list[current]:
+    for i,front in enumerate(roads_list[current]):
         if front in item[0]:
             continue
         #print(pos_path, "in for", front)
-        g = math.sqrt((intersection_dict[front][0] - intersection_dict[current][0])**2 + (intersection_dict[front][1] - intersection_dict[current][1])**2) + item[-2]
+        g = next_cost[current][i] + item[-2]
         h = heuristic_values[front]
         pos_path.insert([item[0]+[front],g,h])
 
